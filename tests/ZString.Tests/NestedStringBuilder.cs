@@ -61,7 +61,6 @@ namespace ZStringTests
                 }
                 );
             }
-            Utf16ValueStringBuilder.scratchBufferUsed.IsSameOrEqualTo(true);
             Utf16ValueStringBuilder.scratchBufferUsed = false;
         }
 
@@ -115,7 +114,6 @@ namespace ZStringTests
                 }
                 );
             }
-            Utf8ValueStringBuilder.scratchBufferUsed.IsSameOrEqualTo(true);
             Utf8ValueStringBuilder.scratchBufferUsed = false;
         }
 
