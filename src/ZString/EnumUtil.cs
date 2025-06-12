@@ -1,12 +1,11 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Cysharp.Text
 {
-    internal static class EnumUtil<T>
-        // where T : Enum
+    internal static class EnumUtil<T> where T : notnull
     {
         const string InvalidName = "$";
 
@@ -45,7 +44,7 @@ namespace Cysharp.Text
         {
             if (!names.TryGetValue(value, out var v) || v == InvalidName)
             {
-                v = value!.ToString(); // T is Enum, not null always
+                v = value!.ToString()!;
             }
 
             written = v.Length;
@@ -56,7 +55,7 @@ namespace Cysharp.Text
         {
             if (!utf8names.TryGetValue(value, out var v) || v.Length == 0)
             {
-                v = Encoding.UTF8.GetBytes(value!.ToString());
+                v = Encoding.UTF8.GetBytes(value!.ToString()!);
             }
 
             written = v.Length;

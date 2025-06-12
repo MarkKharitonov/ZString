@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Buffers;
 using System.Runtime.CompilerServices;
@@ -47,7 +47,7 @@ namespace Cysharp.Text
         {
             if (typeof(T) == typeof(string))
             {
-                var s = Unsafe.As<string>(arg);
+                var s = Unsafe.As<string>(arg)!;
                 int padding = width - s.Length;
                 if (padding > 0)
                 {
@@ -82,7 +82,7 @@ namespace Cysharp.Text
                 }
 
                 var span = sb.GetSpan(charsWritten);
-                s.CopyTo(span);
+                s.Slice(0, charsWritten).CopyTo(span);
                 sb.Advance(charsWritten);
             }
         }
@@ -130,7 +130,7 @@ namespace Cysharp.Text
         {
             if (typeof(T) == typeof(string))
             {
-                var s = Unsafe.As<string>(arg);
+                var s = Unsafe.As<string>(arg)!;
                 int padding = width - s.Length;
                 if (padding > 0)
                 {
@@ -163,7 +163,7 @@ namespace Cysharp.Text
                 }
 
                 var span = sb.GetSpan(charsWritten);
-                s.CopyTo(span);
+                s.Slice(0, charsWritten).CopyTo(span);
                 sb.Advance(charsWritten);
             }
         }
