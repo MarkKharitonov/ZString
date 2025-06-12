@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -47,11 +47,11 @@ namespace Cysharp.Text
         /// <summary>Length of written buffer.</summary>
         public int Length => index;
         /// <summary>Get the written buffer data.</summary>
-        public ReadOnlySpan<char> AsSpan() => buffer.AsSpan(0, index);
+        public ReadOnlySpan<char> AsSpan() => buffer!.AsSpan(0, index);
         /// <summary>Get the written buffer data.</summary>
-        public ReadOnlyMemory<char> AsMemory() => buffer.AsMemory(0, index);
+        public ReadOnlyMemory<char> AsMemory() => buffer!.AsMemory(0, index);
         /// <summary>Get the written buffer data.</summary>
-        public ArraySegment<char> AsArraySegment() => new ArraySegment<char>(buffer, 0, index);
+        public ArraySegment<char> AsArraySegment() => new ArraySegment<char>(buffer!, 0, index);
 
         /// <summary>
         /// Initializes a new instance
@@ -263,7 +263,7 @@ namespace Cysharp.Text
         /// <summary>Appends the string representation of a specified value to this instance.</summary>
         public void Append<T>(T value)
         {
-            if (!FormatterCache<T>.TryFormatDelegate(value, buffer.AsSpan(index), out var written, default))
+            if (!FormatterCache<T>.TryFormatDelegate(value, buffer!.AsSpan(index), out var written, default))
             {
                 Grow(written);
                 if (!FormatterCache<T>.TryFormatDelegate(value, buffer.AsSpan(index), out written, default))
@@ -326,7 +326,7 @@ namespace Cysharp.Text
             var newSize = index + value.Length * count;
             var newBuffer = ArrayPool<char>.Shared.Rent(Math.Max(DefaultBufferSize, newSize));
 
-            buffer.AsSpan(0, index).CopyTo(newBuffer);
+            buffer!.AsSpan(0, index).CopyTo(newBuffer);
             int newBufferIndex = index;
 
             for (int i = 0; i < count; i++)
@@ -338,7 +338,7 @@ namespace Cysharp.Text
             int remainLnegth = this.index - index;
             buffer.AsSpan(index, remainLnegth).CopyTo(newBuffer.AsSpan(newBufferIndex));
 
-            if (buffer!.Length != ThreadStaticBufferSize)
+            if (buffer.Length != ThreadStaticBufferSize)
             {
                 if (buffer != null)
                 {
@@ -462,7 +462,7 @@ namespace Cysharp.Text
 
             var newBuffer = ArrayPool<char>.Shared.Rent(Math.Max(DefaultBufferSize, Length + (newValue.Length - oldValue.Length) * matchCount));
 
-            buffer.AsSpan(0, startIndex).CopyTo(newBuffer);
+            buffer!.AsSpan(0, startIndex).CopyTo(newBuffer);
             int newBufferIndex = startIndex;
 
             for (int i = startIndex; i < endIndex; i += oldValue.Length)
@@ -482,7 +482,7 @@ namespace Cysharp.Text
                 i += pos;
             }
 
-            if (buffer!.Length != ThreadStaticBufferSize)
+            if (buffer.Length != ThreadStaticBufferSize)
             {
                 ArrayPool<char>.Shared.Return(buffer);
             }
@@ -541,7 +541,7 @@ namespace Cysharp.Text
             }
 
             int remain = startIndex + length;
-            buffer.AsSpan(remain, Length - remain).CopyTo(buffer.AsSpan(startIndex));
+            buffer!.AsSpan(remain, Length - remain).CopyTo(buffer.AsSpan(startIndex));
             index -= length;
         }
 
@@ -558,7 +558,7 @@ namespace Cysharp.Text
             }
 
             charsWritten = index;
-            buffer.AsSpan(0, index).CopyTo(destination);
+            buffer!.AsSpan(0, index).CopyTo(destination);
             return true;
         }
 
@@ -568,7 +568,7 @@ namespace Cysharp.Text
             if (index == 0)
                 return string.Empty;
 
-            return new string(buffer, 0, index);
+            return new string(buffer!, 0, index);
         }
 
         // IBufferWriter
@@ -621,7 +621,7 @@ namespace Cysharp.Text
             {
                 width *= -1;
 
-                if (!FormatterCache<T>.TryFormatDelegate(arg, buffer.AsSpan(index), out var charsWritten, format))
+                if (!FormatterCache<T>.TryFormatDelegate(arg, buffer!.AsSpan(index), out var charsWritten, format))
                 {
                     Grow(charsWritten);
                     if (!FormatterCache<T>.TryFormatDelegate(arg, buffer.AsSpan(index), out charsWritten, format))
@@ -642,7 +642,7 @@ namespace Cysharp.Text
             {
                 if (typeof(T) == typeof(string))
                 {
-                    var s = Unsafe.As<string>(arg);
+                    var s = Unsafe.As<string>(arg)!;
                     int padding = width - s.Length;
                     if (padding > 0)
                     {
@@ -731,7 +731,7 @@ namespace Cysharp.Text
                     }
                 }
 
-                TryFormatDelegate = formatter;
+                TryFormatDelegate = formatter!;
             }
 
             static bool TryFormatString(T value, Span<char> dest, out int written, ReadOnlySpan<char> format)
@@ -762,7 +762,7 @@ namespace Cysharp.Text
                     value.ToString();
 
                 // also use this length when result is false.
-                written = s.Length;
+                written = s!.Length;
                 return s.AsSpan().TryCopyTo(dest);
             }
         }
