@@ -52,13 +52,13 @@ namespace Cysharp.Text
         public int Length => index;
 
         /// <summary>Get the written buffer data.</summary>
-        public ReadOnlySpan<byte> AsSpan() => buffer.AsSpan(0, index);
+        public ReadOnlySpan<byte> AsSpan() => buffer!.AsSpan(0, index);
 
         /// <summary>Get the written buffer data.</summary>
-        public ReadOnlyMemory<byte> AsMemory() => buffer.AsMemory(0, index);
+        public ReadOnlyMemory<byte> AsMemory() => buffer!.AsMemory(0, index);
 
         /// <summary>Get the written buffer data.</summary>
-        public ArraySegment<byte> AsArraySegment() => new ArraySegment<byte>(buffer, 0, index);
+        public ArraySegment<byte> AsArraySegment() => new ArraySegment<byte>(buffer!, 0, index);
 
         /// <summary>
         /// Initializes a new instance
@@ -292,7 +292,7 @@ namespace Cysharp.Text
         /// <summary>Appends the string representation of a specified value to this instance.</summary>
         public void Append<T>(T value)
         {
-            if (!FormatterCache<T>.TryFormatDelegate(value, buffer.AsSpan(index), out var written, default))
+            if (!FormatterCache<T>.TryFormatDelegate(value, buffer!.AsSpan(index), out var written, default))
             {
                 Grow(written);
                 if (!FormatterCache<T>.TryFormatDelegate(value, buffer.AsSpan(index), out written, default))
@@ -330,20 +330,20 @@ namespace Cysharp.Text
             }
 
             bytesWritten = index;
-            buffer.AsSpan(0, index).CopyTo(destination);
+            buffer!.AsSpan(0, index).CopyTo(destination);
             return true;
         }
 
         /// <summary>Write inner buffer to stream.</summary>
         public Task WriteToAsync(Stream stream)
         {
-            return stream.WriteAsync(buffer, 0, index);
+            return stream.WriteAsync(buffer!, 0, index);
         }
 
         /// <summary>Write inner buffer to stream.</summary>
         public Task WriteToAsync(Stream stream, CancellationToken cancellationToken)
         {
-            return stream.WriteAsync(buffer, 0, index, cancellationToken);
+            return stream.WriteAsync(buffer!, 0, index, cancellationToken);
         }
 
         /// <summary>Encode the innner utf8 buffer to a System.String.</summary>
@@ -352,7 +352,7 @@ namespace Cysharp.Text
             if (index == 0)
                 return string.Empty;
 
-            return UTF8NoBom.GetString(buffer, 0, index);
+            return UTF8NoBom.GetString(buffer!, 0, index);
         }
 
         // IBufferWriter
@@ -411,7 +411,7 @@ namespace Cysharp.Text
             {
                 width *= -1;
 
-                if (!FormatterCache<T>.TryFormatDelegate(arg, buffer.AsSpan(index), out var charsWritten, format))
+                if (!FormatterCache<T>.TryFormatDelegate(arg, buffer!.AsSpan(index), out var charsWritten, format))
                 {
                     Grow(charsWritten);
                     if (!FormatterCache<T>.TryFormatDelegate(arg, buffer.AsSpan(index), out charsWritten, format))
@@ -432,7 +432,7 @@ namespace Cysharp.Text
             {
                 if (typeof(T) == typeof(string))
                 {
-                    var s = Unsafe.As<string>(arg);
+                    var s = Unsafe.As<string>(arg)!;
                     int padding = width - s.Length;
                     if (padding > 0)
                     {
@@ -460,7 +460,7 @@ namespace Cysharp.Text
                         Append(' ', padding);  // TODO Fill Method is too slow.
                     }
 
-                    s.CopyTo(GetSpan(charsWritten));
+                    s.Slice(0, charsWritten).CopyTo(GetSpan(charsWritten));
                     Advance(charsWritten);
                 }
             }
@@ -513,7 +513,7 @@ namespace Cysharp.Text
                     }
                 }
 
-                TryFormatDelegate = formatter;
+                TryFormatDelegate = formatter!;
             }
 
             static bool TryFormatDefault(T value, Span<byte> dest, out int written, StandardFormat format)
@@ -524,12 +524,12 @@ namespace Cysharp.Text
                     return true;
                 }
 
-                var s = typeof(T) == typeof(string) ? Unsafe.As<string>(value) :
+                var s = typeof(T) == typeof(string) ? Unsafe.As<string>(value)! :
                     (value is IFormattable formattable && format != default) ? formattable.ToString(format.ToString(), null) :
                     value.ToString();
 
                 // also use this length when result is false.
-                written = UTF8NoBom.GetMaxByteCount(s.Length);
+                written = UTF8NoBom.GetMaxByteCount(s!.Length);
                 if (dest.Length < written)
                 {
                     return false;
